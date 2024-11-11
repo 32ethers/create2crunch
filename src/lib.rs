@@ -275,8 +275,10 @@ pub fn gpu(config: Config) -> ocl::Result<()> {
     // set up a controller for terminal output
     let term = Term::stdout();
 
+    let platforms = Platform::list();
     // set up a platform to use
-    let platform = Platform::new(ocl::core::default_platform()?);
+    let platform = platforms[1];
+    // let platform = Platform::new(ocl::core::default_platform()?);
 
     // set up the device to use
     let device = Device::by_idx_wrap(platform, config.gpu_device as usize)?;
@@ -321,7 +323,7 @@ pub fn gpu(config: Config) -> ocl::Result<()> {
     // begin searching for addresses
     loop {
         // construct the 4-byte message to hash, leaving last 8 of salt empty
-        let salt = FixedBytes::<4>::random();
+        let salt: FixedBytes<4> = FixedBytes::<4>::random();
 
         // build a corresponding buffer for passing the message to the kernel
         let message_buffer = Buffer::builder()
