@@ -6,7 +6,7 @@ pub struct Reward {
 
 impl Reward {
     pub fn new() -> Self {
-        let reward = FxHashMap::from_iter([
+        let reward: std::collections::HashMap<usize, &str, std::hash::BuildHasherDefault<rustc_hash::FxHasher>> = FxHashMap::from_iter([
             (5, "4"),
             (6, "454"),
             (7, "57926"),

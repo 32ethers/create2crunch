@@ -266,7 +266,7 @@ pub fn gpu(config: Config) -> ocl::Result<()> {
     let file = output_file();
 
     // create object for computing rewards (relative rarity) for a given address
-    let rewards = Reward::new();
+    // let rewards = Reward::new();
 
     // track how many addresses have been found and information about them
     let mut found: u64 = 0;
@@ -521,15 +521,15 @@ pub fn gpu(config: Config) -> ocl::Result<()> {
                 }
             }
 
-            let key = leading * 20 + total;
-            let reward = rewards.get(&key).unwrap_or("0");
+            // let key = leading * 20 + total;
+            // let reward = rewards.get(&key).unwrap_or("0");
             let output = format!(
-                "0x{}{}{} => {} => {}",
+                "0x{}{}{} => {}",
                 hex::encode(config.calling_address),
                 hex::encode(salt),
                 hex::encode(solution),
                 address,
-                reward,
+                // reward,
             );
 
             let show = format!("{output} ({leading} / {total})");
