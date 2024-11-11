@@ -569,8 +569,8 @@ fn mk_kernel_src(config: &Config) -> String {
     }
     let lz = config.leading_zeroes_threshold;
     writeln!(src, "#define LEADING_ZEROES {lz}").unwrap();
-    let tz = config.total_zeroes_threshold;
-    writeln!(src, "#define TOTAL_ZEROES {tz}").unwrap();
+    // let tz = config.total_zeroes_threshold;
+    writeln!(src, "#define TOTAL_ZEROES 100").unwrap();
 
     src.push_str(KERNEL_SRC);
 

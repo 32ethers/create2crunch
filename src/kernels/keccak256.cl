@@ -196,32 +196,38 @@ static inline void keccakf(ulong *a)
   (!(d[16])) + (!(d[17])) + (!(d[18])) + (!(d[19])) \
 >= TOTAL_ZEROES)
 
-#if LEADING_ZEROES == 8
-#define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1]))
-#elif LEADING_ZEROES == 7
-#define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1] & 0x00ffffffu))
-#elif LEADING_ZEROES == 6
-#define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1] & 0x0000ffffu))
-#elif LEADING_ZEROES == 5
-#define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1] & 0x000000ffu))
-#elif LEADING_ZEROES == 4
-#define hasLeading(d) (!(((uint*)d)[0]))
-#elif LEADING_ZEROES == 3
-#define hasLeading(d) (!(((uint*)d)[0] & 0x00ffffffu))
-#elif LEADING_ZEROES == 2
-#define hasLeading(d) (!(((uint*)d)[0] & 0x0000ffffu))
-#elif LEADING_ZEROES == 1
-#define hasLeading(d) (!(((uint*)d)[0] & 0x000000ffu))
-#else
+// #if LEADING_ZEROES == 8
+// #define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1]))
+// #elif LEADING_ZEROES == 7
+// #define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1] & 0x00ffffffu))
+// #elif LEADING_ZEROES == 6
+// #define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1] & 0x0000ffffu))
+// #elif LEADING_ZEROES == 5
+// #define hasLeading(d) (!(((uint*)d)[0]) && !(((uint*)d)[1] & 0x000000ffu))
+// #elif LEADING_ZEROES == 4
+// #define hasLeading(d) (!(((uint*)d)[0]))
+// #elif LEADING_ZEROES == 3
+// #define hasLeading(d) (!(((uint*)d)[0] & 0x00ffffffu))
+// #elif LEADING_ZEROES == 2
+// #define hasLeading(d) (!(((uint*)d)[0] & 0x0000ffffu))
+// #elif LEADING_ZEROES == 1
+// #define hasLeading(d) (!(((uint*)d)[0] & 0x000000ffu))
+// #else
 static inline bool hasLeading(uchar const *d)
 {
 #pragma unroll
-  for (uint i = 0; i < LEADING_ZEROES; ++i) {
-    if (d[i] != 0) return false;
+  for (uint i = 0; i < LEADING_ZEROES + 1; ++i) {
+    if(i < LEADING_ZEROES){
+      if (d[i] != 0) return false;
+    }else{
+      if (d[i] == 68 && d[i+1]==68) return true;
+      if (d[i] == 4 && d[i+1]==68 && ((d[i+2] & 240) == 64 )) return true;
+      return false;
+    }
   }
-  return true;
+  return false;
 }
-#endif
+// #endif
 
 __kernel void hashMessage(
   __constant uchar const *d_message,
