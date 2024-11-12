@@ -84,4 +84,6 @@ Take the first address for example, first section(0x48e516b34a1274f49457b9c61820
 > * 20 points if the last four nibbles are all 4s
 > * 1 point for each 4 elsewhere in the address
 
-So, that is, good luck for the mining!
+The mined address will also be kept in efficient_addresses.txt. so you don't have worry it would missing. 
+
+So, that is all, good luck for the mining!
