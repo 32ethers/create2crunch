@@ -37,8 +37,8 @@ static KERNEL_SRC: &str = include_str!("./kernels/keccak256.cl");
 /// search, a threshold for leading zeroes to search for, and a threshold for
 /// total zeroes to search for.
 pub struct Config {
-    pub factory_address: [u8; 20],
-    pub calling_address: [u8; 20],
+    pub deployer_address: [u8; 20],
+    pub salt_prefix_20: [u8; 20],
     pub init_code_hash: [u8; 32],
     pub platform_id: u8,
     pub gpu_device: u8,
@@ -50,16 +50,16 @@ impl Config {
     pub fn new(mut args: std::env::Args) -> Result<Self, &'static str> {
         // get args, skipping first arg (program name)
         args.next();
-
-        let Some(factory_address_string) = args.next() else {
-            return Err("didn't get a factory_address argument");
+        let Some(deployer_address_string) = args.next() else {
+            return Err("didn't get a deployer_address argument");
         };
-        let Some(calling_address_string) = args.next() else {
-            return Err("didn't get a calling_address argument");
+        let Some(salt_prefix_20_string) = args.next() else {
+            return Err("didn't get a salt_prefix_20 argument");
         };
         let Some(init_code_hash_string) = args.next() else {
             return Err("didn't get an init_code_hash argument");
         };
+
         let platform_id_string = match args.next() {
             Some(arg) => arg,
             None => String::from("0"),
@@ -74,10 +74,10 @@ impl Config {
         };
 
         // convert main arguments from hex string to vector of bytes
-        let Ok(factory_address_vec) = hex::decode(factory_address_string) else {
+        let Ok(deployer_address_vec) = hex::decode(deployer_address_string) else {
             return Err("could not decode factory address argument");
         };
-        let Ok(calling_address_vec) = hex::decode(calling_address_string) else {
+        let Ok(salt_prefix_20_vec) = hex::decode(salt_prefix_20_string) else {
             return Err("could not decode calling address argument");
         };
         let Ok(init_code_hash_vec) = hex::decode(init_code_hash_string) else {
@@ -85,10 +85,10 @@ impl Config {
         };
 
         // convert from vector to fixed array
-        let Ok(factory_address) = factory_address_vec.try_into() else {
+        let Ok(deployer_address) = deployer_address_vec.try_into() else {
             return Err("invalid length for factory address argument");
         };
-        let Ok(calling_address) = calling_address_vec.try_into() else {
+        let Ok(salt_prefix_20) = salt_prefix_20_vec.try_into() else {
             return Err("invalid length for calling address argument");
         };
         let Ok(init_code_hash) = init_code_hash_vec.try_into() else {
@@ -115,8 +115,8 @@ impl Config {
         };
 
         Ok(Self {
-            factory_address,
-            calling_address,
+            deployer_address,
+            salt_prefix_20,
             init_code_hash,
             platform_id,
             gpu_device,
@@ -380,8 +380,8 @@ pub fn gpu(config: Config) -> ocl::Result<()> {
 
             let mut solution_message = [0; 85];
             solution_message[0] = CONTROL_CHARACTER;
-            solution_message[1..21].copy_from_slice(&config.factory_address);
-            solution_message[21..41].copy_from_slice(&config.calling_address);
+            solution_message[1..21].copy_from_slice(&config.deployer_address);
+            solution_message[21..41].copy_from_slice(&config.salt_prefix_20);
             solution_message[41..45].copy_from_slice(&salt[..]);
             solution_message[45..53].copy_from_slice(&solution);
             solution_message[53..].copy_from_slice(&config.init_code_hash);
@@ -433,7 +433,7 @@ pub fn gpu(config: Config) -> ocl::Result<()> {
             // let reward = rewards.get(&key).unwrap_or("0");
             let output = format!(
                 "0x{}{}{} => {}",
-                hex::encode(config.calling_address),
+                hex::encode(config.salt_prefix_20),
                 hex::encode(salt),
                 hex::encode(solution),
                 address,
@@ -471,8 +471,8 @@ fn output_file() -> File {
 fn mk_kernel_src(config: &Config) -> String {
     let mut src = String::with_capacity(2048 + KERNEL_SRC.len());
 
-    let factory = config.factory_address.iter();
-    let caller = config.calling_address.iter();
+    let factory = config.deployer_address.iter();
+    let caller = config.salt_prefix_20.iter();
     let hash = config.init_code_hash.iter();
     let hash = hash.enumerate().map(|(i, x)| (i + 52, x));
     for (i, x) in factory.chain(caller).enumerate().chain(hash) {
